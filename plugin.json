@@ -1,10 +1,9 @@
 {
-    "id": "com.mattermost.plugin-starter-template",
-    "name": "Plugin Starter Template",
-    "description": "This plugin serves as a starting point for writing a Mattermost plugin.",
-    "homepage_url": "https://github.com/mattermost/mattermost-plugin-starter-template",
-    "support_url": "https://github.com/mattermost/mattermost-plugin-starter-template/issues",
-    "release_notes_url": "https://github.com/mattermost/mattermost-plugin-starter-template/releases/tag/v0.1.0",
+    "id": "com.github.wadahiro.keycloak-ciba",
+    "name": "Plugin to handle CIBA with keyclaok",
+    "description": "This plugin serves as an authentication device for CIBA with keycloak.",
+    "homepage_url": "https://github.com/wadahiro/mattermost-plugin-keycloak-ciba",
+    "support_url": "https://github.com/wadahiro/mattermost-plugin-keycloak-ciba/issues",
     "icon_path": "assets/starter-template-icon.svg",
     "version": "0.1.0",
     "min_server_version": "5.12.0",
@@ -16,12 +15,22 @@
             "windows-amd64": "server/dist/plugin-windows-amd64.exe"
         }
     },
-    "webapp": {
-        "bundle_path": "webapp/dist/main.js"
-    },
     "settings_schema": {
         "header": "",
         "footer": "",
-        "settings": []
+        "settings": [
+            {
+                "key": "CallbackURL",
+                "display_name": "Keycloak CIBA callback URL",
+                "type": "text",
+                "help_text": "Set keycloak CIBA callback URL."
+            },
+            {
+                "key": "BotUsername",
+                "display_name": "Bot username",
+                "type": "username",
+                "help_text": "Select bot's username you want to use."
+            }
+        ]
     }
 }

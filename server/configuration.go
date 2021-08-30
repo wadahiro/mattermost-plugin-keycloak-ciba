@@ -18,6 +18,8 @@ import (
 // If you add non-reference types to your configuration struct, be sure to rewrite Clone as a deep
 // copy appropriate for your types.
 type configuration struct {
+	CallbackURL string `json:"callbackurl"`
+	BotUsername string `json:"botusername"`
 }
 
 // Clone shallow copies the configuration. Your implementation may require a deep copy if
@@ -76,6 +78,24 @@ func (p *Plugin) OnConfigurationChange() error {
 	if err := p.API.LoadPluginConfiguration(configuration); err != nil {
 		return errors.Wrap(err, "failed to load plugin configuration")
 	}
+
+	if configuration.CallbackURL == "" {
+		return errors.New("empty callbackURL not allowed")
+	}
+	if configuration.BotUsername == "" {
+		return errors.New("empty botUsername not allowed")
+	}
+
+	botUser, err := p.API.GetUserByUsername(configuration.BotUsername)
+	if err != nil {
+		return errors.New("Not found the bot user: " + configuration.BotUsername)
+	}
+
+	if !botUser.IsBot {
+		return errors.New("Not bot user: " + configuration.BotUsername)
+	}
+
+	p.botUserID = botUser.Id
 
 	p.setConfiguration(configuration)
 
