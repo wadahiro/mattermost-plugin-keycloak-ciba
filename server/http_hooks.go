@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/mattermost/mattermost-server/v6/model"
@@ -78,10 +79,14 @@ func (p *Plugin) handleAuth(c *plugin.Context, w http.ResponseWriter, r *http.Re
 		UserId:    p.botUserID,
 	}
 
+	bms := strings.Split(authReq.BindingMessage, ",")
+	requestor := bms[0]
+	target := bms[1]
+
 	post.SetProps(map[string]interface{}{
 		"attachments": []*model.SlackAttachment{
 			{
-				Text: authReq.BindingMessage + "にログインしようとしていますか?",
+				Text: "@" + requestor + " より要求: " + target,
 				Actions: []*model.PostAction{
 					{
 						Id:   "approve",
@@ -90,7 +95,7 @@ func (p *Plugin) handleAuth(c *plugin.Context, w http.ResponseWriter, r *http.Re
 							Context: map[string]interface{}{
 								"access_token": accessToken,
 								"status":       "SUCCEED",
-								"result":       authReq.BindingMessage + "へのログインを承認しました。",
+								"result":       "@" + requestor + " の要求を承認: " + target,
 							},
 							URL: fmt.Sprintf("%v/plugins/%v/callback", p.getSiteURL(), manifest.ID),
 						},
@@ -103,7 +108,7 @@ func (p *Plugin) handleAuth(c *plugin.Context, w http.ResponseWriter, r *http.Re
 							Context: map[string]interface{}{
 								"access_token": accessToken,
 								"status":       "UNAUTHORIZED",
-								"result":       authReq.BindingMessage + "へのログインを却下しました。",
+								"result":       "@" + requestor + "の要求を却下: " + target,
 							},
 							URL: fmt.Sprintf("%v/plugins/%v/callback", p.getSiteURL(), manifest.ID),
 						},
@@ -157,7 +162,7 @@ func (p *Plugin) handleCallback(c *plugin.Context, w http.ResponseWriter, r *htt
 	resp, err := client.Do(req)
 	if err != nil {
 		p.API.LogError("Failed to request keycloak ciba callback", err)
-		p.encodeEphemeralMessage(w, "We cound not send the action")
+		p.encodeEphemeralMessage(w, "We could not send the action")
 		return
 	}
 

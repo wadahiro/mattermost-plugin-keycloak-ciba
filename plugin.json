@@ -1,6 +1,6 @@
 {
     "id": "com.github.wadahiro.keycloak-ciba",
-    "name": "Plugin to handle CIBA with keyclaok",
+    "name": "Keycloak CIBA",
     "description": "This plugin serves as an authentication device for CIBA with keycloak.",
     "homepage_url": "https://github.com/wadahiro/mattermost-plugin-keycloak-ciba",
     "support_url": "https://github.com/wadahiro/mattermost-plugin-keycloak-ciba/issues",

@@ -1,0 +1,71 @@
+version: "3"
+services:
+  load-balancer:
+    image: traefik:v2.4.8
+    command:
+      # - "--log.level=DEBUG"
+      - "--api.insecure=true"
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--entrypoints.web.address=:80"
+    ports:
+      - "80:80"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    networks:
+      default:
+        aliases:
+          - ${SSO_FQDN}
+          - ${MATTERMOST_FQDN}
+
+  keycloak:
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.keycloak.rule=Host(`${SSO_FQDN}`)"
+      - "traefik.http.routers.keycloak.entrypoints=web"
+      - "traefik.http.services.keycloak-service.loadBalancer.sticky.cookie=true"
+      - "traefik.http.services.keycloak-service.loadBalancer.sticky.cookie.name=sso-lb"
+    build:
+      context: ../keycloak-extension
+    environment:
+      - "DB_VENDOR=postgres"
+      - "DB_DATABASE=keycloak"
+      - "DB_ADDR=postgres"
+      - "DB_PORT=5432"
+      - "DB_USER=keycloak"
+      - "DB_PASSWORD=keycloak"
+      - "JDBC_PARAMS=loginTimeout=2&connectTimeout=2&cancelSignalTimeout=2&socketTimeout=60&tcpKeepAlive=true"
+      - "KEYCLOAK_PASSWORD=admin"
+      - "KEYCLOAK_USER=admin"
+      - "PROXY_ADDRESS_FORWARDING=true"
+      - "MATTERMOST_CIBA_AD_URL=http://mattermost:8065/plugins/com.github.wadahiro.keycloak-ciba/auth"
+      - "JAVA_OPTS_APPEND=-Dkeycloak.frontendUrl=http://${SSO_FQDN}/auth"
+#      - "KEYCLOAK_IMPORT=/var/lib/keycloak/realm-example.json"
+#    ports:
+#      - "8080:8080"
+#      - "8787:8787"
+    restart: on-failure:10
+  postgres:
+    image: postgres:13.4-alpine
+    environment:
+      - "POSTGRES_USER=keycloak"
+      - "POSTGRES_PASSWORD=keycloak"
+      - "POSTGRES_DB=keycloak"
+#    ports:
+#      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data:cached
+
+  mattermost:
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.mattermost.rule=Host(`${MATTERMOST_FQDN}`)"
+      - "traefik.http.routers.mattermost.entrypoints=web"
+      - "traefik.http.services.mattermost.loadbalancer.server.port=8065"
+    image: mattermost/mattermost-preview
+#    ports:
+#      - "8065:8065"
+
+volumes:
+  postgres_data:
+    driver: local

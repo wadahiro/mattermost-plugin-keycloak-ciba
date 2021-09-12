@@ -1,0 +1,6 @@
+embed-server --server-config=standalone-ha.xml --std-out=echo
+
+/subsystem=keycloak-server/spi=ciba-auth-channel/:add(default-provider=ciba-mattermost-auth-channel)
+/subsystem=keycloak-server/spi=ciba-auth-channel/provider=ciba-mattermost-auth-channel:add(enabled=true,properties={httpAuthenticationChannelUri=${env.MATTERMOST_CIBA_AD_URL}})
+
+stop-embedded-server
